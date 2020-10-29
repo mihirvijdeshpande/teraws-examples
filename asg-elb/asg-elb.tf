@@ -14,7 +14,7 @@ resource "aws_launch_configuration" "webcluster" {
 }
 resource "aws_autoscaling_group" "scalegroup" {
   launch_configuration = aws_launch_configuration.webcluster.name
-  availability_zones   = [var.aws_region]
+  availability_zones   = ["${var.aws_region}a"]
   min_size             = 1
   max_size             = 2
   enabled_metrics      = ["GroupMinSize", "GroupMaxSize", "GroupDesiredCapacity", "GroupInServiceInstances", "GroupTotalInstances"]
@@ -111,7 +111,7 @@ resource "aws_security_group" "elbsg" {
 }
 resource "aws_elb" "elb1" {
   name               = "terraform-elb"
-  availability_zones = [var.aws_region]
+  availability_zones = ["${var.aws_region}a"]
   security_groups    = [aws_security_group.elbsg.id]
 
   listener {

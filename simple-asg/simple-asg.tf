@@ -5,7 +5,7 @@ resource "aws_launch_template" "alt" {
 }
 
 resource "aws_autoscaling_group" "asg" {
-  availability_zones = [var.aws_region]
+  availability_zones = ["${var.aws_region}a"]
   desired_capacity   = var.capacity
   max_size           = var.capacity
   min_size           = var.capacity
