@@ -1,16 +1,11 @@
-provider "aws" {
-  region     = "us-east-2"
-  access_key = "somekey"
-  secret_key = "somekey"
-}
 resource "aws_s3_bucket" "s3" {
-  bucket        = "s3-bucket-name-1ll1dan"
-  acl           = "private"
-  force_destroy = true
+  bucket        = var.bucket_name
+  acl           = var.acl
+  force_destroy = var.force_destroy
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
+        sse_algorithm = var.sse_algorithm
       }
     }
   }
@@ -18,15 +13,15 @@ resource "aws_s3_bucket" "s3" {
 resource "aws_s3_bucket_object" "ll1dan_object" {
   key                    = "object1"
   bucket                 = aws_s3_bucket.s3.id
-  source                 = "index.html"
-  server_side_encryption = "AES256"
+  source                 = var.object_index
+  server_side_encryption = var.sse_algorithm
 }
 
 resource "aws_s3_bucket_object" "ll1dan_object2" {
   key                    = "object2"
   bucket                 = aws_s3_bucket.s3.id
-  source                 = "home.html"
-  server_side_encryption = "AES256"
+  source                 = var.object_home
+  server_side_encryption = var.sse_algorithm
 }
 resource "aws_s3_bucket_policy" "s3_policy" {
   bucket = aws_s3_bucket.s3.id

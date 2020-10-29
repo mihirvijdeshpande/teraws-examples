@@ -1,13 +1,8 @@
-provider "aws" {
-  region     = "us-east-2"
-  access_key = "somekey"
-  secret_key = "somekey"
-}
 resource "aws_launch_configuration" "webcluster" {
-  image_id        = "ami-0010d386b82bc06f0"
-  instance_type   = "t2.micro"
+  image_id        = var.image_id
+  instance_type   = var.instance_type
   security_groups = [aws_security_group.websg.id]
-  key_name        = "aws-workstation"
+  key_name        = var.key_name
   user_data       = <<-EOF
     #!/bin/bash
     echo "Hello!! This is WebService!" > index.html
@@ -19,7 +14,7 @@ resource "aws_launch_configuration" "webcluster" {
 }
 resource "aws_autoscaling_group" "scalegroup" {
   launch_configuration = aws_launch_configuration.webcluster.name
-  availability_zones   = ["us-east-2a"]
+  availability_zones   = [var.aws_region]
   min_size             = 1
   max_size             = 2
   enabled_metrics      = ["GroupMinSize", "GroupMaxSize", "GroupDesiredCapacity", "GroupInServiceInstances", "GroupTotalInstances"]
@@ -38,11 +33,11 @@ resource "aws_cloudwatch_metric_alarm" "cpualarm" {
   alarm_name          = "teraws-alarm"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "2"
-  metric_name         = "CPUUtilization"
-  namespace           = "AWS/EC2"
-  period              = "120"
+  metric_name         = var.metric_name
+  namespace           = var.alarm_namespace
+  period              = var.alarm_period
   statistic           = "Average"
-  threshold           = "60"
+  threshold           = var.up_threshold
   dimensions = {
     AutoScalingGroupName = aws_autoscaling_group.scalegroup.name
   }
@@ -60,11 +55,11 @@ resource "aws_cloudwatch_metric_alarm" "cpualarm-down" {
   alarm_name          = "terraform-alarm-down"
   comparison_operator = "LessThanOrEqualToThreshold"
   evaluation_periods  = "2"
-  metric_name         = "CPUUtilization"
-  namespace           = "AWS/EC2"
-  period              = "120"
+  metric_name         = var.metric_name
+  namespace           = var.alarm_namespace
+  period              = var.alarm_period
   statistic           = "Average"
-  threshold           = "10"
+  threshold           = var.down_threshold
 
   dimensions = {
     AutoScalingGroupName = aws_autoscaling_group.scalegroup.name
@@ -76,8 +71,8 @@ resource "aws_cloudwatch_metric_alarm" "cpualarm-down" {
 resource "aws_security_group" "websg" {
   name = "security_group_for_web_server"
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = var.http_port
+    to_port     = var.http_port
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -89,16 +84,16 @@ resource "aws_security_group" "websg" {
 resource "aws_security_group_rule" "ssh" {
   security_group_id = aws_security_group.websg.id
   type              = "ingress"
-  from_port         = 22
-  to_port           = 22
+  from_port         = var.ssh_port
+  to_port           = var.ssh_port
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
 }
 resource "aws_security_group" "elbsg" {
   name = "security_group_for_elb"
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = var.http_port
+    to_port     = var.http_port
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -116,13 +111,13 @@ resource "aws_security_group" "elbsg" {
 }
 resource "aws_elb" "elb1" {
   name               = "terraform-elb"
-  availability_zones = ["us-east-2a"]
+  availability_zones = [var.aws_region]
   security_groups    = [aws_security_group.elbsg.id]
-  
+
   listener {
-    instance_port     = 80
+    instance_port     = var.http_port
     instance_protocol = "http"
-    lb_port           = 80
+    lb_port           = var.http_port
     lb_protocol       = "http"
   }
   health_check {
@@ -142,7 +137,7 @@ resource "aws_elb" "elb1" {
 resource "aws_lb_cookie_stickiness_policy" "cookie_stickness" {
   name                     = "cookiestickness"
   load_balancer            = aws_elb.elb1.id
-  lb_port                  = 80
+  lb_port                  = var.http_port
   cookie_expiration_period = 600
 }
 

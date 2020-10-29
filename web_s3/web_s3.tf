@@ -3,8 +3,8 @@ resource "aws_s3_bucket" "website_bucket" {
   acl    = "public-read"
   policy = data.aws_iam_policy_document.website_policy.json
   website {
-    index_document = "index.html"
-    error_document = "home.html"
+    index_document = var.index_file
+    error_document = var.home_file
   }
   logging {
     target_bucket = aws_s3_bucket.logs.bucket
@@ -16,15 +16,15 @@ resource "aws_s3_bucket" "logs" {
   acl    = "log-delivery-write"
 }
 resource "aws_s3_bucket_object" "ll1dan_object1" {
-  key          = "index.html"
+  key          = var.index_file
   bucket       = aws_s3_bucket.website_bucket.id
-  source       = "index.html"
-  content_type = "text/html"
+  source       = var.index_file
+  content_type = var.content_type
 }
 
 resource "aws_s3_bucket_object" "ll1dan_object2" {
-  key          = "home.html"
+  key          = var.home_file
   bucket       = aws_s3_bucket.website_bucket.id
-  source       = "home.html"
-  content_type = "text/html"
+  source       = var.home_file
+  content_type = var.content_type
 }
