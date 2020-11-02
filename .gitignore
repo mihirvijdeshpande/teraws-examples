@@ -15,3 +15,8 @@ enc_s3/terraform.tfstate.backup
 enc_s3/terraform.tfstate
 asg-elb/terraform.tfstate.backup
 asg-elb/terraform.tfstate
+credentialsFile
+s3_dist/terraform.tfstate
+s3_dist/terraform.tfstate.backup
+s3_dist/.terraform/plugins/selections.json
+s3_dist/.terraform/plugins/registry.terraform.io/hashicorp/aws/3.13.0/linux_amd64/terraform-provider-aws_v3.13.0_x5
